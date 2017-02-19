@@ -1,4 +1,6 @@
 """
+    Auther: Zewei Liu
+    Data: 02/19/2017
     N-body simulation.
     all the optimization included
     Original runtime: 109.012778997
