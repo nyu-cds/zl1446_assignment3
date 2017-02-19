@@ -49,13 +49,10 @@ BODIES = {
                  -9.51592254519715870e-05 * DAYS_PER_YEAR],
                 5.15138902046611451e-05 * SOLAR_MASS)}
 
-def advance(dt,iterations):
+def advance(dt,iterations,BODIES_keys,BODIES_keys_pair,bodies_local):
     '''
         advance the system one timestep
     '''
-    BODIES_keys = BODIES.keys()
-    BODIES_keys_pair = list(combinations(BODIES_keys,2))
-    bodies_local = BODIES
 
     for _ in range(iterations):
         for body1,body2 in BODIES_keys_pair:
@@ -78,7 +75,7 @@ def advance(dt,iterations):
             r[1] += dt * vy
             r[2] += dt * vz
     
-def report_energy(e=0.0):
+def report_energy(BODIES_keys,BODIES_keys_pair,bodies_local,e=0.0):
     '''
         compute the energy and return it so that it can be printed
     '''
@@ -98,13 +95,11 @@ def report_energy(e=0.0):
         
     return e
 
-def offset_momentum(ref, px=0.0, py=0.0, pz=0.0):
+def offset_momentum(ref, BODIES_keys, bodies_local, px=0.0, py=0.0, pz=0.0):
     '''
         ref is the body in the center of the system
         offset values from this reference
     '''
-    BODIES_keys = BODIES.keys()
-    bodies_local = BODIES
 
     for body in BODIES_keys:
         (r, [vx, vy, vz], m) = bodies_local[body]
@@ -125,13 +120,16 @@ def nbody(loops, reference, iterations):
         reference - body at center of system
         iterations - number of timesteps to advance
     '''
+    BODIES_keys = BODIES.keys()
+    BODIES_keys_pair = list(combinations(BODIES_keys,2))
+    bodies_local = BODIES
     # Set up global state
-    offset_momentum(BODIES[reference])
+    offset_momentum(BODIES[reference], BODIES_keys, bodies_local)
 
     for _ in range(loops):
         # report_energy()
-        advance(0.01,iterations)
-        print(report_energy())
+        advance(0.01,iterations,BODIES_keys,BODIES_keys_pair,bodies_local)
+        print(report_energy(BODIES_keys,BODIES_keys_pair,bodies_local))
 
 if __name__ == '__main__':
     setup = "from __main__ import nbody"
