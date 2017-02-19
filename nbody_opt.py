@@ -120,7 +120,9 @@ def nbody(loops, reference, iterations):
         reference - body at center of system
         iterations - number of timesteps to advance
     '''
+
     BODIES_keys = BODIES.keys()
+    # bodies key pair represent different combination of bodies keys 
     BODIES_keys_pair = list(combinations(BODIES_keys,2))
     bodies_local = BODIES
     # Set up global state
