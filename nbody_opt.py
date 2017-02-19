@@ -4,7 +4,7 @@
     N-body simulation.
     all the optimization included
     Original runtime: 109.012778997
-    This program runtime: 40.3473141193
+    This program runtime: 34.3830599785
     Relative Speedup: 2.701859625021585
 """
 from itertools import combinations
@@ -49,27 +49,6 @@ BODIES = {
                  -9.51592254519715870e-05 * DAYS_PER_YEAR],
                 5.15138902046611451e-05 * SOLAR_MASS)}
 
-
-    
-def compute_b(m, dt, dx, dy, dz):
-    mag = dt * ((dx * dx + dy * dy + dz * dz) ** (-1.5))
-    return m * mag
-
-def update_vs(v1, v2, dt, dx, dy, dz, m1, m2):
-    mag = dt * ((dx * dx + dy * dy + dz * dz) ** (-1.5))
-
-    v1[0] -= dx * m2 * mag
-    v1[1] -= dy * m2 * mag
-    v1[2] -= dz * m2 * mag
-    v2[0] += dx * m1 * mag
-    v2[1] += dy * m1 * mag
-    v2[2] += dz * m1 * mag
-
-def update_rs(r, dt, vx, vy, vz):
-    r[0] += dt * vx
-    r[1] += dt * vy
-    r[2] += dt * vz
-
 def advance(dt,iterations):
     '''
         advance the system one timestep
@@ -83,12 +62,21 @@ def advance(dt,iterations):
             ([x1, y1, z1], v1, m1) = bodies_local[body1]
             ([x2, y2, z2], v2, m2) = bodies_local[body2]
             (dx, dy, dz) = (x1-x2, y1-y2, z1-z2)
-            update_vs(v1, v2, dt, dx, dy, dz, m1, m2)
+            # update vs
+
+            mag = dt * ((dx * dx + dy * dy + dz * dz) ** (-1.5))
+            v1[0] -= dx * m2 * mag
+            v1[1] -= dy * m2 * mag
+            v1[2] -= dz * m2 * mag
+            v2[0] += dx * m1 * mag
+            v2[1] += dy * m1 * mag
+            v2[2] += dz * m1 * mag
             
         for body in BODIES_keys:
             (r, [vx, vy, vz], m) = bodies_local[body]
-            update_rs(r, dt, vx, vy, vz)
-
+            r[0] += dt * vx
+            r[1] += dt * vy
+            r[2] += dt * vz
     
 def report_energy(e=0.0):
     '''
