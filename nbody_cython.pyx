@@ -6,8 +6,8 @@
     Original runtime: 109.012778997
     This program runtime: 34.3830599785
     Relative Speedup: 2.701859625021585
-    Cython version running time: 13.5 s
-    Relative Speedup: 8.074
+    Cython version running time: 8.29397201538086
+    Relative Speedup: 13.143615483008611
 """
 
 from itertools import combinations
@@ -19,7 +19,8 @@ cdef advance(dt,int iterations,BODIES_keys,BODIES_keys_pair,bodies_local):
     '''
         advance the system one timestep
     '''
-
+    cdef float x1, y1, z1, m1, x2, y2, z2, m2, dx, dy, dz, mag, vx, vy, vz, m
+    cdef list v1, v2, r 
     for _ in range(iterations):
         for body1,body2 in BODIES_keys_pair:
             ([x1, y1, z1], v1, m1) = bodies_local[body1]
@@ -45,6 +46,8 @@ cdef report_energy(BODIES_keys,BODIES_keys_pair,bodies_local,float e=0.0):
     '''
         compute the energy and return it so that it can be printed
     '''
+    cdef float x1, y1, z1, m1, x2, y2, z2, m2, dx, dy, dz, vx, vy, vz, m
+    cdef list v1, v2, r 
 
     for body1,body2 in BODIES_keys_pair:
         ((x1, y1, z1), v1, m1) = bodies_local[body1]
@@ -63,7 +66,8 @@ cdef offset_momentum(ref, BODIES_keys, bodies_local,float px=0.0, float py=0.0, 
         ref is the body in the center of the system
         offset values from this reference
     '''
-
+    cdef float vx, vy, vz, m 
+    cdef list r, v 
     for body in BODIES_keys:
         (r, [vx, vy, vz], m) = bodies_local[body]
         px -= vx * m
@@ -95,10 +99,10 @@ cdef nbody(int loops, reference,int iterations,BODIES):
         advance(0.01,iterations,BODIES_keys,BODIES_keys_pair,bodies_local)
         print(report_energy(BODIES_keys,BODIES_keys_pair,bodies_local))
 def main():
-    PI = 3.14159265358979323
-    SOLAR_MASS = 4 * PI * PI
-    DAYS_PER_YEAR = 365.24
-    BODIES = {
+    cdef float PI = 3.14159265358979323
+    cdef float SOLAR_MASS = 4 * PI * PI
+    cdef float DAYS_PER_YEAR = 365.24
+    cdef dict BODIES = {
     'sun': ([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], SOLAR_MASS),
     'jupiter': ([4.84143144246472090e+00,
                  -1.16032004402742839e+00,
