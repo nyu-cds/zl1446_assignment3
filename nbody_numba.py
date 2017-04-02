@@ -7,11 +7,17 @@
     This program runtime: 34.3830599785
     Relative Speedup: 2.701859625021585
 
+    runtime with Numba: 7.382239230203015 s
 
 """
 from itertools import combinations
-from numba import jit,int32,float64
+from numba import jit,int32,float64,vectorize
 import time
+import numpy as np
+
+@vectorize([float64(float64, float64)])
+def vec_deltas(a1, a2):
+    return a1 - a2
 
 
 @jit('void(float64,int32,int32[:],int32[:,:],float64[:,:,:])')
@@ -24,7 +30,7 @@ def advance(dt,iterations,BODIES_keys,BODIES_keys_pair,bodies_local):
         for body1,body2 in BODIES_keys_pair:
             ([x1, y1, z1], v1, m1) = bodies_local[body1]
             ([x2, y2, z2], v2, m2) = bodies_local[body2]
-            (dx, dy, dz) = (x1-x2, y1-y2, z1-z2)
+            (dx, dy, dz) = vec_deltas(np.array([x1, y1, z1]),np.array([x2, y2, z2]))
             # update vs
 
             mag = dt * ((dx * dx + dy * dy + dz * dz) ** (-1.5))
@@ -40,6 +46,8 @@ def advance(dt,iterations,BODIES_keys,BODIES_keys_pair,bodies_local):
             r[0] += dt * vx
             r[1] += dt * vy
             r[2] += dt * vz
+
+
 @jit('void(int32[:],int64[:,:],float64[:,:,:],float64)')
 def report_energy(BODIES_keys,BODIES_keys_pair,bodies_local,e=0.0):
     '''
@@ -48,18 +56,17 @@ def report_energy(BODIES_keys,BODIES_keys_pair,bodies_local,e=0.0):
     BODIES_keys = BODIES.keys()
     BODIES_keys_pair = list(combinations(BODIES_keys,2))
     bodies_local = BODIES
-
     for body1,body2 in BODIES_keys_pair:
         ((x1, y1, z1), v1, m1) = bodies_local[body1]
         ((x2, y2, z2), v2, m2) = bodies_local[body2]
-        (dx, dy, dz) = (x1-x2, y1-y2, z1-z2)
+        (dx, dy, dz) = vec_deltas(np.array([x1,y1,z1]),np.array([x2,y2,z2]))
         e -= (m1 * m2) / ((dx * dx + dy * dy + dz * dz) ** 0.5)
-        
     for body in BODIES_keys:
         (r, [vx, vy, vz], m) = bodies_local[body]
         e += m * (vx * vx + vy * vy + vz * vz) / 2.
         
     return e
+
 @jit('void(float64[:],int32[:],float64[:,:,:],float64, float64, float64)')
 def offset_momentum(ref, BODIES_keys, bodies_local, px=0.0, py=0.0, pz=0.0):
     '''
@@ -89,10 +96,10 @@ def nbody(loops,reference, iterations):
     BODIES_keys = BODIES.keys()
     # bodies key pair represent different combination of bodies keys 
     BODIES_keys_pair = list(combinations(BODIES_keys,2))
+
     bodies_local = BODIES
     # Set up global state
     offset_momentum(BODIES[reference], BODIES_keys, bodies_local)
-
     for _ in range(loops):
         # report_energy()
         advance(0.01,iterations,BODIES_keys,BODIES_keys_pair,bodies_local)
@@ -139,6 +146,6 @@ if __name__ == '__main__':
                      -9.51592254519715870e-05 * DAYS_PER_YEAR],
                     5.15138902046611451e-05 * SOLAR_MASS)}
     time1 = time.time()
-    nbody(100,'sun', 20000)
+    nbody(100,'sun',20000)
     print("time is ", time.time()-time1)
 
