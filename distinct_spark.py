@@ -17,4 +17,4 @@ if __name__ == '__main__':
     sorted_map = words_mapped.sortByKey()
     #we use the distinct and count method to get the number of different words
     num_distinct_words = sorted_map.distinct().count()
-    print(num_distinct_words)
+    print(" number of different words:",num_distinct_words)
